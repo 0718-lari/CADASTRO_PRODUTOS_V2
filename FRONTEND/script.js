@@ -37,7 +37,7 @@ class Produto {
 // MUDANÇA DE ARQUITETURA - CLIENTE-SERVIDOR
 
 // CRIAR UMA CONSTANTE COM ENDEREÇO DE API (RODANDO NO SERVIDOR)
-const API_URL = '/api/produto';
+const API_URL = '/api/produtos';
 
 // REQUISIÇÃO POST - enviar dados para o servidor
 // funcão deve serasync pois o envio, resposta trafegame pela mesma rede
