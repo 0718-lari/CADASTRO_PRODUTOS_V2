@@ -133,15 +133,19 @@ document.getElementById('limpar-tabela').addEventListener('click', async functio
 
 async function excluirProduto(nome) {
     try {
-        const resposta = await fetch(`${API_URL}/${nome}`, {
-            method: 'DELETE'
-        });
+        const resposta = await fetch(
+            `${API_URL}?nome=${encodeURIComponent(nome)}`,
+            {
+                method: 'DELETE'
+            }
+        );
 
         if (!resposta.ok) {
             throw new Error("Erro ao excluir produto.");
         }
 
         renderizarTabela();
+
     } catch (erro) {
         console.error(erro);
     }
