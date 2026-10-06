@@ -450,10 +450,15 @@ async function renderizarTabela() {
 
                 botoesAdmin = `
                     <button
+                     onclick="editarProduto(
+                        ${dados.id},
+                        '${dados.nome.replace(/'/g, "\\'")}',
+                        ${dados.preco},
+                        ${dados.quantidade}
+                        )" > Editar </button>  
+                    <button
                         onclick="excluirProduto(${dados.id})"
-                    >
-                        Excluir
-                    </button>
+                    > Excluir </button>
                 `;
             }
 
@@ -605,6 +610,106 @@ async function excluirProduto(id) {
     }
 }
 
+// ==========================================
+// EDITAR UM PRODUTO
+// ==========================================
+
+async function editarProduto(id, nomeAtual, precoAtual, quantidadeAtual) {
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        alert('Você precisa estar logado.');
+        mostrarTelaLogin();
+        return;
+    }
+
+    const usuarioSalvo = localStorage.getItem('usuario');
+
+    if (!usuarioSalvo) {
+        alert('Usuário não encontrado.');
+        return;
+    }
+
+    const usuario = JSON.parse(usuarioSalvo);
+
+    if (usuario.perfil !== 'admin') {
+        alert('Apenas administradores podem editar produtos.');
+        return;
+    }
+
+    const novoNome = prompt(
+        'Digite o novo nome do produto:',
+        nomeAtual
+    );
+
+    if (novoNome === null) {
+        return;
+    }
+
+    const novoPreco = prompt(
+        'Digite o novo preço:',
+        precoAtual
+    );
+
+    if (novoPreco === null) {
+        return;
+    }
+
+    const novaQuantidade = prompt(
+        'Digite a nova quantidade:',
+        quantidadeAtual
+    );
+
+    if (novaQuantidade === null) {
+        return;
+    }
+
+    if (!novoNome || novoPreco <= 0 || novaQuantidade <= 0) {
+        alert('Digite valores válidos.');
+        return;
+    }
+
+    try {
+
+        const resposta = await fetch(
+            `${API_URL}?id=${id}`,
+            {
+                method: 'PUT',
+
+                headers: {
+                    'Content-Type': 'application/json',
+
+                    'Authorization':
+                        `Bearer ${token}`
+                },
+
+                body: JSON.stringify({
+                    nome: novoNome,
+                    preco: parseFloat(novoPreco),
+                    quantidade: parseInt(novaQuantidade)
+                })
+            }
+        );
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                dados.error ||
+                'Erro ao editar produto.'
+            );
+        }
+
+        alert('Produto atualizado com sucesso!');
+
+        renderizarTabela();
+
+    } catch (erro) {
+
+        alert(erro.message);
+    }
+}
 
 // ==========================================
 // LIMPAR TODOS OS PRODUTOS

@@ -1,4 +1,4 @@
-const { createClient } = require('@supabase/supabase-js');
+jsconst { createClient } = require('@supabase/supabase-js');
 
 const {
     verificarToken,
@@ -51,7 +51,11 @@ module.exports = async function handler(req, res) {
 
         const { nome, preco, quantidade } = req.body;
 
-        if (!nome || preco === undefined || quantidade === undefined) {
+        if (
+            !nome ||
+            preco === undefined ||
+            quantidade === undefined
+        ) {
             return res.status(400).json({
                 error: 'Nome, preço e quantidade são obrigatórios.'
             });
@@ -83,7 +87,7 @@ module.exports = async function handler(req, res) {
 
     // ==========================================
     // PUT - ALTERAR PRODUTO
-    // Precisa estar logado
+    // Somente ADMIN
     // ==========================================
 
     if (req.method === 'PUT') {
@@ -91,6 +95,11 @@ module.exports = async function handler(req, res) {
         const usuario = verificarToken(req, res);
 
         if (!usuario) {
+            return;
+        }
+
+        // Somente administradores podem editar
+        if (!verificarAdmin(usuario, res)) {
             return;
         }
 
@@ -170,6 +179,7 @@ module.exports = async function handler(req, res) {
 
         // DELETE /api/produtos
         // Excluir todos
+
         const { error } = await supabase
             .from('produtos')
             .delete()
