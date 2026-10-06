@@ -2,19 +2,20 @@ class Produto {
     #preco;
     #quantidade;
 
-
     constructor(nome, preco, quantidade) {
         if (!nome || preco <= 0 || quantidade <= 0) {
             throw new Error("Dados inválidos para o produto");
         }
-        this.nome = nome;
 
+        this.nome = nome;
         this.#preco = parseFloat(preco);
         this.#quantidade = parseInt(quantidade);
     }
+
     get preco() {
         return this.#preco;
     }
+
     get quantidade() {
         return this.#quantidade;
     }
@@ -23,7 +24,6 @@ class Produto {
         return this.#preco * this.#quantidade;
     }
 
-    //Método toJSON
     toJSON() {
         return {
             nome: this.nome,
@@ -31,129 +31,597 @@ class Produto {
             quantidade: this.#quantidade
         };
     }
+
 }
 
-// const produtos = [];
-// MUDANÇA DE ARQUITETURA - CLIENTE-SERVIDOR
+// ==========================================
+// CONFIGURAÇÕES
+// ==========================================
 
-// CRIAR UMA CONSTANTE COM ENDEREÇO DE API (RODANDO NO SERVIDOR)
 const API_URL = '/api/produtos';
+const AUTH_URL = '/api/auth';
 
-// REQUISIÇÃO POST - enviar dados para o servidor
-// funcão deve serasync pois o envio, resposta trafegame pela mesma rede
-// usar await até que o servidor responda 
+// ==========================================
+// ELEMENTOS DAS TELAS
+// ==========================================
 
+const telaLogin = document.getElementById('tela-login');
+const telaCadastro = document.getElementById('tela-cadastro');
+const telaProdutos = document.getElementById('tela-produtos');
 
-document.getElementById("produto-form").addEventListener('submit', async function (e) {
+const loginForm = document.getElementById('login-form');
+const cadastroForm = document.getElementById('cadastro-form');
+
+const mostrarCadastro = document.getElementById('mostrar-cadastro');
+const voltarLogin = document.getElementById('voltar-login');
+
+// ==========================================
+// MOSTRAR LOGIN
+// ==========================================
+
+function mostrarTelaLogin() {
+    telaLogin.classList.remove('escondido');
+    telaCadastro.classList.add('escondido');
+    telaProdutos.classList.add('escondido');
+}
+
+// ==========================================
+// MOSTRAR CADASTRO
+// ==========================================
+
+mostrarCadastro.addEventListener('click', function () {
+    telaLogin.classList.add('escondido');
+    telaCadastro.classList.remove('escondido');
+    telaProdutos.classList.add('escondido');
+});
+
+voltarLogin.addEventListener('click', function () {
+    mostrarTelaLogin();
+});
+
+// ==========================================
+// LOGIN
+// ==========================================
+
+loginForm.addEventListener('submit', async function (e) {
+
     e.preventDefault();
 
-    const nome = document.getElementById('nome').value;
-    const preco = document.getElementById('preco').value;
-    const quantidade = document.getElementById('quantidade').value;
+    const email = document.getElementById('login-email').value;
+    const senha = document.getElementById('login-senha').value;
 
     try {
-        const novoProduto = new Produto(nome, preco, quantidade);
 
-        // produtos.push(novoProduto);
+        const resposta = await fetch(`${AUTH_URL}?acao=login`, {
 
-        // DISPARO NA REDE: envia o produto convertido em texto JSON para o Express
-
-        const resposta = await fetch(API_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(novoProduto.toJSON())
+
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify({
+                email: email,
+                senha: senha
+            })
+
         });
 
+
+        const dados = await resposta.json();
+
+
         if (!resposta.ok) {
-            throw new Error('Erro ao salvar o produto no servidor backend');
+            throw new Error(dados.error || 'Erro ao realizar login.');
         }
 
-        renderizarTabela();
-        e.target.reset();
 
+        // Guarda o JWT no navegador
+        localStorage.setItem('token', dados.token);
+
+        // Guarda os dados do usuário
+        localStorage.setItem(
+            'usuario',
+            JSON.stringify(dados.usuario)
+        );
+
+
+        loginForm.reset();
+
+        mostrarTelaProdutos(dados.usuario);
 
     } catch (erro) {
-        alert(erro.message);
-    }
-}); //PAREI AQUI
 
-// REQUISAÇÃO GET (buscar um servidor e desenhar tela)
-// O coração da proposta ocorre aqui
+        alert(erro.message);
+
+    }
+
+});
+
+// ==========================================
+// CADASTRO DE USUÁRIO
+// ==========================================
+
+cadastroForm.addEventListener('submit', async function (e) {
+
+    e.preventDefault();
+
+    const nome = document.getElementById('cadastro-nome').value;
+    const email = document.getElementById('cadastro-email').value;
+    const senha = document.getElementById('cadastro-senha').value;
+
+
+    try {
+
+        const resposta = await fetch(`${AUTH_URL}?acao=registro`, {
+
+            method: 'POST',
+
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify({
+                nome: nome,
+                email: email,
+                senha: senha
+            })
+
+        });
+
+
+        const dados = await resposta.json();
+
+
+        if (!resposta.ok) {
+            throw new Error(
+                dados.error || 'Erro ao cadastrar usuário.'
+            );
+        }
+
+
+        alert('Usuário cadastrado com sucesso!');
+
+
+        cadastroForm.reset();
+
+        mostrarTelaLogin();
+
+    } catch (erro) {
+
+        alert(erro.message);
+
+    }
+
+});
+
+// ==========================================
+// MOSTRAR TELA DE PRODUTOS
+// ==========================================
+
+function mostrarTelaProdutos(usuario) {
+
+    telaLogin.classList.add('escondido');
+
+    telaCadastro.classList.add('escondido');
+
+    telaProdutos.classList.remove('escondido');
+
+
+    document.getElementById('nome-usuario').textContent =
+        `Olá, ${usuario.nome}!`;
+
+
+    document.getElementById('perfil-usuario').textContent =
+        `Perfil: ${usuario.perfil}`;
+
+
+    renderizarTabela();
+
+}
+
+// ==========================================
+// VERIFICAR SE JÁ ESTÁ LOGADO
+// ==========================================
+
+function verificarLogin() {
+
+    const token = localStorage.getItem('token');
+
+    const usuarioSalvo = localStorage.getItem('usuario');
+
+
+    if (token && usuarioSalvo) {
+
+        try {
+
+            const usuario = JSON.parse(usuarioSalvo);
+
+            mostrarTelaProdutos(usuario);
+
+        } catch (erro) {
+
+            localStorage.removeItem('token');
+
+            localStorage.removeItem('usuario');
+
+            mostrarTelaLogin();
+
+        }
+
+    } else {
+
+        mostrarTelaLogin();
+
+    }
+
+}
+
+// ==========================================
+// BOTÃO SAIR
+// ==========================================
+
+document.getElementById('botao-sair').addEventListener(
+    'click',
+    function () {
+
+        localStorage.removeItem('token');
+
+        localStorage.removeItem('usuario');
+
+        mostrarTelaLogin();
+
+    }
+
+);
+
+// ==========================================
+// PRODUTO - CADASTRAR
+// ==========================================
+
+document.getElementById('produto-form').addEventListener(
+    'submit',
+    async function (e) {
+
+        e.preventDefault();
+
+
+        const nome =
+            document.getElementById('nome').value;
+
+        const preco =
+            document.getElementById('preco').value;
+
+        const quantidade =
+            document.getElementById('quantidade').value;
+
+
+        const token = localStorage.getItem('token');
+
+
+        if (!token) {
+
+            alert('Você precisa estar logado.');
+
+            mostrarTelaLogin();
+
+            return;
+
+        }
+
+
+        try {
+
+            const novoProduto =
+                new Produto(nome, preco, quantidade);
+
+
+            const resposta = await fetch(API_URL, {
+
+                method: 'POST',
+
+                headers: {
+
+                    'Content-Type': 'application/json',
+
+                    'Authorization': `Bearer ${token}`
+
+                },
+
+                body: JSON.stringify(
+                    novoProduto.toJSON()
+                )
+
+            });
+
+
+            const dados = await resposta.json();
+
+
+            if (!resposta.ok) {
+
+                throw new Error(
+                    dados.error ||
+                    'Erro ao salvar o produto.'
+                );
+
+            }
+
+
+            alert('Produto cadastrado com sucesso!');
+
+            e.target.reset();
+
+            renderizarTabela();
+
+
+        } catch (erro) {
+
+            alert(erro.message);
+
+        }
+
+    }
+
+);
+
+// ==========================================
+// PRODUTOS - LISTAR
+// ==========================================
 
 async function renderizarTabela() {
 
     try {
 
-        // buscar dados
         const resposta = await fetch(API_URL);
-        const dadosBrutosDoServidor = await resposta.json();
 
-        const tabela = document.querySelector('#tabela-produtos tbody');
+
+        if (!resposta.ok) {
+
+            throw new Error(
+                'Erro ao buscar produtos.'
+            );
+
+        }
+
+
+        const dadosBrutosDoServidor =
+            await resposta.json();
+
+
+        const tabela =
+            document.querySelector(
+                '#tabela-produtos tbody'
+            );
+
+
         tabela.innerHTML = '';
+
+
         let totalAcumulado = 0;
 
-        // 2 passado por cada item retornando pelo BACKEND 
+
         dadosBrutosDoServidor.forEach((dados) => {
-            const produto = new Produto(dados.nome, dados.preco, dados.quantidade);
-            totalAcumulado += produto.valorTotal();
-            // desenha a linha na tabela utilizando os dados do objeto reconstruindo 
-            const row = document.createElement('tr');
+
+            const produto =
+                new Produto(
+                    dados.nome,
+                    dados.preco,
+                    dados.quantidade
+                );
+
+
+            totalAcumulado +=
+                produto.valorTotal();
+
+
+            const row =
+                document.createElement('tr');
+
 
             row.innerHTML = `
+    
                 <td>${produto.nome}</td>
-                <td>R$ ${produto.preco.toFixed(2)}</td>
-                <td>${produto.quantidade}</td>
-                <td>R$ ${produto.valorTotal().toFixed(2)}</td>
-                <td><button onclick="excluirProduto('${produto.nome}')"> Excluir </button></td>
+    
+                <td>
+                    R$ ${produto.preco.toFixed(2)}
+                </td>
+    
+                <td>
+                    ${produto.quantidade}
+                </td>
+    
+                <td>
+                    R$ ${produto.valorTotal().toFixed(2)}
+                </td>
+    
+                <td>
+                    <button
+                        onclick="excluirProduto(${dados.id})"
+                    >
+                        Excluir
+                    </button>
+                </td>
+    
             `;
+
+
             tabela.appendChild(row);
+
         });
 
-        // 3 atualiza o elemento de texto com o acumulado total
-        document.getElementById('total-estoque').textContent = `Total em estoque: R$ ${totalAcumulado.toFixed(2)}`;
+
+        document.getElementById(
+            'total-estoque'
+        ).textContent =
+            `Total em estoque: R$ ${totalAcumulado.toFixed(2)}`;
+
+
     } catch (erro) {
-        console.error("Erro ao buscar dados no servidor:", erro);
+
+        console.error(
+            'Erro ao buscar dados no servidor:',
+            erro
+        );
+
     }
-};
 
-// REQUISIÇÃO PARA DELETE (apagar os dados em lote)
-document.getElementById('limpar-tabela').addEventListener('click', async function () {
-    if (confirm("Deseja mesmo limpar mesmo toda a tabela no servidor?")) {
-        try {
-            // envia uma ordem de remoção para a API
-            await fetch(API_URL, { method: 'DELETE' });
+}
 
-            // atualiza a tabela
-            renderizarTabela();
-        } catch (erro) {
-            console.error("Erro ao limpar dados no servidor:", erro);
-        }
+// ==========================================
+// EXCLUIR UM PRODUTO
+// ==========================================
+
+async function excluirProduto(id) {
+
+    const token =
+        localStorage.getItem('token');
+
+
+    if (!token) {
+
+        alert('Você precisa estar logado.');
+
+        mostrarTelaLogin();
+
+        return;
+
     }
-});
 
-async function excluirProduto(nome) {
+
+    if (!confirm(
+        'Deseja realmente excluir este produto?'
+    )) {
+
+        return;
+
+    }
+
+
     try {
+
         const resposta = await fetch(
-            `${API_URL}?nome=${encodeURIComponent(nome)}`,
+            `${API_URL}?id=${id}`,
             {
-                method: 'DELETE'
+
+                method: 'DELETE',
+
+                headers: {
+
+                    'Authorization':
+                        `Bearer ${token}`
+
+                }
+
             }
         );
 
+
+        const dados =
+            await resposta.json();
+
+
         if (!resposta.ok) {
-            throw new Error("Erro ao excluir produto.");
+
+            throw new Error(
+                dados.error ||
+                'Erro ao excluir produto.'
+            );
+
         }
+
 
         renderizarTabela();
 
+
     } catch (erro) {
-        console.error(erro);
+
+        alert(erro.message);
+
     }
+
 }
 
-// INICIALIAZAÇÃO AUTOMÁTICA 
-// assim que o usuário abre o navegador, o app busca
-// se ja há dados salvods de sessões anteriores lá no BACKEND
-renderizarTabela();
+// ==========================================
+// LIMPAR TODOS OS PRODUTOS
+// ==========================================
+
+document.getElementById(
+    'limpar-tabela'
+).addEventListener(
+    'click',
+    async function () {
+
+        const token =
+            localStorage.getItem('token');
 
 
+        if (!token) {
+
+            alert('Você precisa estar logado.');
+
+            mostrarTelaLogin();
+
+            return;
+
+        }
+
+
+        if (!confirm(
+            'Deseja realmente limpar toda a tabela?'
+        )) {
+
+            return;
+
+        }
+
+
+        try {
+
+            const resposta =
+                await fetch(API_URL, {
+
+                    method: 'DELETE',
+
+                    headers: {
+
+                        'Authorization':
+                            `Bearer ${token}`
+
+                    }
+
+                });
+
+
+            const dados =
+                await resposta.json();
+
+
+            if (!resposta.ok) {
+
+                throw new Error(
+                    dados.error ||
+                    'Erro ao limpar a tabela.'
+                );
+
+            }
+
+
+            renderizarTabela();
+
+
+        } catch (erro) {
+
+            alert(erro.message);
+
+        }
+
+    }
+
+);
+
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+
+verificarLogin();

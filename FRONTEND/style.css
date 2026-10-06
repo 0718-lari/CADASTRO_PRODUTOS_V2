@@ -3,212 +3,241 @@ body {
     margin: 0;
     padding: 20px;
     min-height: 100vh;
-
-    /* Fundo cinza */
     background-color: #d6d6d6;
-
-    /* Padrão de zigue-zague */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40' viewBox='0 0 120 40'%3E%3Cpath d='M0 20 L15 5 L30 20 L45 5 L60 20 L75 5 L90 20 L105 5 L120 20' fill='none' stroke='%23303030' stroke-width='2' opacity='0.60'/%3E%3C/svg%3E");
-
     background-repeat: repeat;
 }
 
-/* Container */
+/* ========================= */
+/* CONTAINER */
+/* ========================= */
 
 .container {
     max-width: 500px;
     background: white;
-
     padding: 25px;
     margin: 30px auto;
-
     border-radius: 12px;
-
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
-
-    position:relative;
+    position: relative;
     z-index: 1;
 }
 
+/* ========================= */
+/* ESCONDER TELAS */
+/* ========================= */
 
-/* Foto */
+.escondido {
+    display: none;
+}
+
+/* ========================= */
+/* FOTO */
+/* ========================= */
 
 .foto-perfil {
     display: block;
-
     width: 120px;
     height: 120px;
-
     object-fit: cover;
-
     border-radius: 50%;
-
     margin: 0 auto 22px;
-
     border: 4px solid #303030;
-    
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-
-/* Título */
+/* ========================= */
+/* TÍTULOS */
+/* ========================= */
 
 h1 {
     text-align: center;
-
     color: #1d1d1d;
-
-    margin-bottom: 25px;
+    margin-bottom: 10px;
 }
 
-/* Formulário */
+.subtitulo {
+    text-align: center;
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 14px;
+}
+
+/* ========================= */
+/* FORMULÁRIO */
+/* ========================= */
 
 form {
     display: flex;
     flex-direction: column;
-
     gap: 8px;
 }
 
-
 label {
     font-size: 16px;
-
     color: #333;
-
     margin-top: 5px;
 }
-
 
 input {
     padding: 10px;
-
     font-size: 16px;
-
     border: 1px solid #ccc;
-
     border-radius: 5px;
-
     box-sizing: border-box;
 }
 
-
 input:focus {
     outline: none;
-
     border-color: #303030;
 }
 
-
-/* Botões */
+/* ========================= */
+/* BOTÕES */
+/* ========================= */
 
 button {
     padding: 12px;
-
     font-size: 16px;
-
     font-weight: bold;
-
     background-color: #303030;
-
     color: white;
-
     cursor: pointer;
-
     border: none;
-
     border-radius: 6px;
-
     margin-top: 5px;
-
     transition: 0.2s;
 }
 
-
 button:hover {
     background-color: #7a7a7a;
-
     transform: scale(1.01);
 }
 
+/* ========================= */
+/* LINK DE CADASTRO */
+/* ========================= */
 
-/* Botão Limpar tabela */
+.cadastro-link {
+    text-align: center;
+    color: #555;
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+.cadastro-link button {
+    background: none;
+    color: #303030;
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+    text-decoration: underline;
+}
+
+.cadastro-link button:hover {
+    background: none;
+    transform: none;
+    color: #777;
+}
+
+/* ========================= */
+/* CABEÇALHO DO USUÁRIO */
+/* ========================= */
+
+.cabecalho-usuario {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+#nome-usuario {
+    display: block;
+    font-size: 18px;
+    color: #1d1d1d;
+}
+
+#perfil-usuario {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: #777;
+}
+
+.botao-sair {
+    padding: 8px 14px;
+    margin: 0;
+    font-size: 13px;
+    background-color: #555;
+}
+
+.botao-sair:hover {
+    background-color: #303030;
+}
+
+/* ========================= */
+/* LIMPAR TABELA */
+/* ========================= */
 
 #limpar-tabela {
     display: block;
-
     width: auto;
-
     margin: 12px auto 0;
-
     padding: 8px 18px;
-
     background-color: transparent;
-
     color: #303030;
-
     border: 2px solid #303030;
-
     font-size: 14px;
-
     font-weight: bold;
 }
 
-
 #limpar-tabela:hover {
     background-color: #303030;
-
     color: white;
-
     transform: scale(1.03);
 }
 
-
-/* Total em estoque */
+/* ========================= */
+/* TOTAL EM ESTOQUE */
+/* ========================= */
 
 #total-estoque {
     color: #1d1d1d;
-
     margin-top: 20px;
 }
 
-
-/* Tabela */
+/* ========================= */
+/* TABELA */
+/* ========================= */
 
 table {
     width: 100%;
-
     border-collapse: collapse;
-
     margin-top: 20px;
-
     font-size: 14px;
 }
-
 
 th,
 td {
     border: 1px solid #b8b8b8;
-
     padding: 8px;
-
     text-align: center;
 }
 
-
 th {
     background-color: #303030;
-
     color: white;
 }
-
 
 td {
     background-color: #f5f5f5;
 }
 
-
-/* Responsividade */
+/* ========================= */
+/* RESPONSIVIDADE */
+/* ========================= */
 
 @media (max-width: 600px) {
 
@@ -226,6 +255,4 @@ td {
     td {
         padding: 6px;
     }
-
 }
-
