@@ -7,21 +7,19 @@ const supabase = createClient(
     process.env.SUPABASE_PUBLISHABLE_KEY
 );
 
-// =========================
-// FUNÇÃO PRINCIPAL
-// =========================
-
 module.exports = async function handler(req, res) {
 
-    // =========================
-    // POST - REGISTRAR USUÁRIO
-    // =========================
+    const acao = req.query.acao;
 
-    if (req.method === 'POST' && req.url.startsWith('/api/auth/registro')) {
+    // ==========================================
+    // CADASTRO
+    // POST /api/auth?acao=registro
+    // ==========================================
+
+    if (req.method === 'POST' && acao === 'registro') {
 
         const { nome, email, senha } = req.body;
 
-        // Validação
         if (!nome || !email || !senha) {
             return res.status(400).json({
                 error: 'Nome, email e senha são obrigatórios.'
@@ -34,7 +32,6 @@ module.exports = async function handler(req, res) {
             });
         }
 
-        // Verificar se o email já existe
         const { data: usuarioExistente, error: erroBusca } =
             await supabase
                 .from('usuarios')
@@ -56,15 +53,7 @@ module.exports = async function handler(req, res) {
             });
         }
 
-        // =========================
-        // CRIPTOGRAFAR SENHA
-        // =========================
-
         const senhaHash = await bcrypt.hash(senha, 10);
-
-        // =========================
-        // SALVAR USUÁRIO
-        // =========================
 
         const { data, error } = await supabase
             .from('usuarios')
@@ -93,22 +82,22 @@ module.exports = async function handler(req, res) {
         });
     }
 
-    // =========================
-    // POST - LOGIN
-    // =========================
 
-    if (req.method === 'POST' && req.url.startsWith('/api/auth/login')) {
+    // ==========================================
+    // LOGIN
+    // POST /api/auth?acao=login
+    // ==========================================
+
+    if (req.method === 'POST' && acao === 'login') {
 
         const { email, senha } = req.body;
 
-        // Validação
         if (!email || !senha) {
             return res.status(400).json({
                 error: 'Email e senha são obrigatórios.'
             });
         }
 
-        // Buscar usuário pelo email
         const { data: usuario, error } = await supabase
             .from('usuarios')
             .select('id, nome, email, senha, perfil')
@@ -129,10 +118,6 @@ module.exports = async function handler(req, res) {
             });
         }
 
-        // =========================
-        // COMPARAR SENHA
-        // =========================
-
         const senhaValida = await bcrypt.compare(
             senha,
             usuario.senha
@@ -144,10 +129,6 @@ module.exports = async function handler(req, res) {
             });
         }
 
-        // =========================
-        // GERAR JWT
-        // =========================
-
         const token = jwt.sign(
             {
                 id: usuario.id,
@@ -158,10 +139,6 @@ module.exports = async function handler(req, res) {
                 expiresIn: '2h'
             }
         );
-
-        // =========================
-        // RETORNAR TOKEN
-        // =========================
 
         return res.status(200).json({
             message: 'Login realizado com sucesso.',
@@ -175,11 +152,12 @@ module.exports = async function handler(req, res) {
         });
     }
 
-    // =========================
-    // MÉTODO NÃO PERMITIDO
-    // =========================
 
-    return res.status(405).json({
-        error: 'Método não permitido.'
+    // ==========================================
+    // ROTA NÃO ENCONTRADA
+    // ==========================================
+
+    return res.status(404).json({
+        error: 'Ação não encontrada.'
     });
 };
