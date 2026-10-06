@@ -31,8 +31,8 @@ class Produto {
             quantidade: this.#quantidade
         };
     }
-
 }
+
 
 // ==========================================
 // CONFIGURAÇÕES
@@ -40,6 +40,7 @@ class Produto {
 
 const API_URL = '/api/produtos';
 const AUTH_URL = '/api/auth';
+
 
 // ==========================================
 // ELEMENTOS DAS TELAS
@@ -55,6 +56,7 @@ const cadastroForm = document.getElementById('cadastro-form');
 const mostrarCadastro = document.getElementById('mostrar-cadastro');
 const voltarLogin = document.getElementById('voltar-login');
 
+
 // ==========================================
 // MOSTRAR LOGIN
 // ==========================================
@@ -64,6 +66,7 @@ function mostrarTelaLogin() {
     telaCadastro.classList.add('escondido');
     telaProdutos.classList.add('escondido');
 }
+
 
 // ==========================================
 // MOSTRAR CADASTRO
@@ -79,21 +82,19 @@ voltarLogin.addEventListener('click', function () {
     mostrarTelaLogin();
 });
 
+
 // ==========================================
 // LOGIN
 // ==========================================
 
 loginForm.addEventListener('submit', async function (e) {
-
     e.preventDefault();
 
     const email = document.getElementById('login-email').value;
     const senha = document.getElementById('login-senha').value;
 
     try {
-
         const resposta = await fetch(`${AUTH_URL}?acao=login`, {
-
             method: 'POST',
 
             headers: {
@@ -104,17 +105,15 @@ loginForm.addEventListener('submit', async function (e) {
                 email: email,
                 senha: senha
             })
-
         });
-
 
         const dados = await resposta.json();
 
-
         if (!resposta.ok) {
-            throw new Error(dados.error || 'Erro ao realizar login.');
+            throw new Error(
+                dados.error || 'Erro ao realizar login.'
+            );
         }
-
 
         // Guarda o JWT no navegador
         localStorage.setItem('token', dados.token);
@@ -125,53 +124,51 @@ loginForm.addEventListener('submit', async function (e) {
             JSON.stringify(dados.usuario)
         );
 
-
         loginForm.reset();
 
         mostrarTelaProdutos(dados.usuario);
 
     } catch (erro) {
-
         alert(erro.message);
-
     }
-
 });
+
 
 // ==========================================
 // CADASTRO DE USUÁRIO
 // ==========================================
 
 cadastroForm.addEventListener('submit', async function (e) {
-
     e.preventDefault();
 
-    const nome = document.getElementById('cadastro-nome').value;
-    const email = document.getElementById('cadastro-email').value;
-    const senha = document.getElementById('cadastro-senha').value;
+    const nome =
+        document.getElementById('cadastro-nome').value;
 
+    const email =
+        document.getElementById('cadastro-email').value;
+
+    const senha =
+        document.getElementById('cadastro-senha').value;
 
     try {
+        const resposta = await fetch(
+            `${AUTH_URL}?acao=registro`,
+            {
+                method: 'POST',
 
-        const resposta = await fetch(`${AUTH_URL}?acao=registro`, {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
 
-            method: 'POST',
-
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
-            body: JSON.stringify({
-                nome: nome,
-                email: email,
-                senha: senha
-            })
-
-        });
-
+                body: JSON.stringify({
+                    nome: nome,
+                    email: email,
+                    senha: senha
+                })
+            }
+        );
 
         const dados = await resposta.json();
-
 
         if (!resposta.ok) {
             throw new Error(
@@ -179,21 +176,17 @@ cadastroForm.addEventListener('submit', async function (e) {
             );
         }
 
-
         alert('Usuário cadastrado com sucesso!');
-
 
         cadastroForm.reset();
 
         mostrarTelaLogin();
 
     } catch (erro) {
-
         alert(erro.message);
-
     }
-
 });
+
 
 // ==========================================
 // MOSTRAR TELA DE PRODUTOS
@@ -202,23 +195,33 @@ cadastroForm.addEventListener('submit', async function (e) {
 function mostrarTelaProdutos(usuario) {
 
     telaLogin.classList.add('escondido');
-
     telaCadastro.classList.add('escondido');
-
     telaProdutos.classList.remove('escondido');
-
 
     document.getElementById('nome-usuario').textContent =
         `Olá, ${usuario.nome}!`;
-
 
     document.getElementById('perfil-usuario').textContent =
         `Perfil: ${usuario.perfil}`;
 
 
-    renderizarTabela();
+    // ==========================================
+    // CONTROLE DO BOTÃO LIMPAR TABELA
+    // ==========================================
 
+    const botaoLimpar =
+        document.getElementById('limpar-tabela');
+
+    if (usuario.perfil === 'admin') {
+        botaoLimpar.style.display = 'block';
+    } else {
+        botaoLimpar.style.display = 'none';
+    }
+
+
+    renderizarTabela();
 }
+
 
 // ==========================================
 // VERIFICAR SE JÁ ESTÁ LOGADO
@@ -226,36 +229,35 @@ function mostrarTelaProdutos(usuario) {
 
 function verificarLogin() {
 
-    const token = localStorage.getItem('token');
+    const token =
+        localStorage.getItem('token');
 
-    const usuarioSalvo = localStorage.getItem('usuario');
-
+    const usuarioSalvo =
+        localStorage.getItem('usuario');
 
     if (token && usuarioSalvo) {
 
         try {
 
-            const usuario = JSON.parse(usuarioSalvo);
+            const usuario =
+                JSON.parse(usuarioSalvo);
 
             mostrarTelaProdutos(usuario);
 
         } catch (erro) {
 
             localStorage.removeItem('token');
-
             localStorage.removeItem('usuario');
 
             mostrarTelaLogin();
-
         }
 
     } else {
 
         mostrarTelaLogin();
-
     }
-
 }
+
 
 // ==========================================
 // BOTÃO SAIR
@@ -266,14 +268,12 @@ document.getElementById('botao-sair').addEventListener(
     function () {
 
         localStorage.removeItem('token');
-
         localStorage.removeItem('usuario');
 
         mostrarTelaLogin();
-
     }
-
 );
+
 
 // ==========================================
 // PRODUTO - CADASTRAR
@@ -285,7 +285,6 @@ document.getElementById('produto-form').addEventListener(
 
         e.preventDefault();
 
-
         const nome =
             document.getElementById('nome').value;
 
@@ -295,8 +294,8 @@ document.getElementById('produto-form').addEventListener(
         const quantidade =
             document.getElementById('quantidade').value;
 
-
-        const token = localStorage.getItem('token');
+        const token =
+            localStorage.getItem('token');
 
 
         if (!token) {
@@ -306,36 +305,39 @@ document.getElementById('produto-form').addEventListener(
             mostrarTelaLogin();
 
             return;
-
         }
 
 
         try {
 
             const novoProduto =
-                new Produto(nome, preco, quantidade);
+                new Produto(
+                    nome,
+                    preco,
+                    quantidade
+                );
 
 
-            const resposta = await fetch(API_URL, {
+            const resposta =
+                await fetch(API_URL, {
 
-                method: 'POST',
+                    method: 'POST',
 
-                headers: {
+                    headers: {
+                        'Content-Type': 'application/json',
 
-                    'Content-Type': 'application/json',
+                        'Authorization':
+                            `Bearer ${token}`
+                    },
 
-                    'Authorization': `Bearer ${token}`
-
-                },
-
-                body: JSON.stringify(
-                    novoProduto.toJSON()
-                )
-
-            });
+                    body: JSON.stringify(
+                        novoProduto.toJSON()
+                    )
+                });
 
 
-            const dados = await resposta.json();
+            const dados =
+                await resposta.json();
 
 
             if (!resposta.ok) {
@@ -344,11 +346,13 @@ document.getElementById('produto-form').addEventListener(
                     dados.error ||
                     'Erro ao salvar o produto.'
                 );
-
             }
 
 
-            alert('Produto cadastrado com sucesso!');
+            alert(
+                'Produto cadastrado com sucesso!'
+            );
+
 
             e.target.reset();
 
@@ -358,12 +362,10 @@ document.getElementById('produto-form').addEventListener(
         } catch (erro) {
 
             alert(erro.message);
-
         }
-
     }
-
 );
+
 
 // ==========================================
 // PRODUTOS - LISTAR
@@ -373,7 +375,8 @@ async function renderizarTabela() {
 
     try {
 
-        const resposta = await fetch(API_URL);
+        const resposta =
+            await fetch(API_URL);
 
 
         if (!resposta.ok) {
@@ -381,7 +384,6 @@ async function renderizarTabela() {
             throw new Error(
                 'Erro ao buscar produtos.'
             );
-
         }
 
 
@@ -401,7 +403,22 @@ async function renderizarTabela() {
         let totalAcumulado = 0;
 
 
-        dadosBrutosDoServidor.forEach((dados) => {
+        // Pega o usuário logado
+        const usuarioSalvo =
+            localStorage.getItem('usuario');
+
+
+        let usuario = null;
+
+
+        if (usuarioSalvo) {
+
+            usuario =
+                JSON.parse(usuarioSalvo);
+        }
+
+
+        dadosBrutosDoServidor.forEach(function (dados) {
 
             const produto =
                 new Produto(
@@ -419,35 +436,54 @@ async function renderizarTabela() {
                 document.createElement('tr');
 
 
-            row.innerHTML = `
-    
-                <td>${produto.nome}</td>
-    
-                <td>
-                    R$ ${produto.preco.toFixed(2)}
-                </td>
-    
-                <td>
-                    ${produto.quantidade}
-                </td>
-    
-                <td>
-                    R$ ${produto.valorTotal().toFixed(2)}
-                </td>
-    
-                <td>
+            // ==========================================
+            // BOTÃO EXCLUIR SOMENTE PARA ADMIN
+            // ==========================================
+
+            let botoesAdmin = '';
+
+
+            if (
+                usuario &&
+                usuario.perfil === 'admin'
+            ) {
+
+                botoesAdmin = `
                     <button
                         onclick="excluirProduto(${dados.id})"
                     >
                         Excluir
                     </button>
+                `;
+            }
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${produto.nome}
                 </td>
-    
+
+                <td>
+                    R$ ${produto.preco.toFixed(2)}
+                </td>
+
+                <td>
+                    ${produto.quantidade}
+                </td>
+
+                <td>
+                    R$ ${produto.valorTotal().toFixed(2)}
+                </td>
+
+                <td>
+                    ${botoesAdmin}
+                </td>
+
             `;
 
 
             tabela.appendChild(row);
-
         });
 
 
@@ -463,10 +499,9 @@ async function renderizarTabela() {
             'Erro ao buscar dados no servidor:',
             erro
         );
-
     }
-
 }
+
 
 // ==========================================
 // EXCLUIR UM PRODUTO
@@ -480,12 +515,42 @@ async function excluirProduto(id) {
 
     if (!token) {
 
-        alert('Você precisa estar logado.');
+        alert(
+            'Você precisa estar logado.'
+        );
 
         mostrarTelaLogin();
 
         return;
+    }
 
+
+    // Verifica se é admin
+    const usuarioSalvo =
+        localStorage.getItem('usuario');
+
+
+    if (!usuarioSalvo) {
+
+        alert(
+            'Usuário não encontrado.'
+        );
+
+        return;
+    }
+
+
+    const usuario =
+        JSON.parse(usuarioSalvo);
+
+
+    if (usuario.perfil !== 'admin') {
+
+        alert(
+            'Apenas administradores podem excluir produtos.'
+        );
+
+        return;
     }
 
 
@@ -494,27 +559,23 @@ async function excluirProduto(id) {
     )) {
 
         return;
-
     }
 
 
     try {
 
-        const resposta = await fetch(
-            `${API_URL}?id=${id}`,
-            {
+        const resposta =
+            await fetch(
+                `${API_URL}?id=${id}`,
+                {
+                    method: 'DELETE',
 
-                method: 'DELETE',
-
-                headers: {
-
-                    'Authorization':
-                        `Bearer ${token}`
-
+                    headers: {
+                        'Authorization':
+                            `Bearer ${token}`
+                    }
                 }
-
-            }
-        );
+            );
 
 
         const dados =
@@ -527,8 +588,12 @@ async function excluirProduto(id) {
                 dados.error ||
                 'Erro ao excluir produto.'
             );
-
         }
+
+
+        alert(
+            'Produto excluído com sucesso!'
+        );
 
 
         renderizarTabela();
@@ -537,10 +602,9 @@ async function excluirProduto(id) {
     } catch (erro) {
 
         alert(erro.message);
-
     }
-
 }
+
 
 // ==========================================
 // LIMPAR TODOS OS PRODUTOS
@@ -558,12 +622,42 @@ document.getElementById(
 
         if (!token) {
 
-            alert('Você precisa estar logado.');
+            alert(
+                'Você precisa estar logado.'
+            );
 
             mostrarTelaLogin();
 
             return;
+        }
 
+
+        // Verifica se é admin
+        const usuarioSalvo =
+            localStorage.getItem('usuario');
+
+
+        if (!usuarioSalvo) {
+
+            alert(
+                'Usuário não encontrado.'
+            );
+
+            return;
+        }
+
+
+        const usuario =
+            JSON.parse(usuarioSalvo);
+
+
+        if (usuario.perfil !== 'admin') {
+
+            alert(
+                'Apenas administradores podem limpar a tabela.'
+            );
+
+            return;
         }
 
 
@@ -572,25 +666,23 @@ document.getElementById(
         )) {
 
             return;
-
         }
 
 
         try {
 
             const resposta =
-                await fetch(API_URL, {
+                await fetch(
+                    API_URL,
+                    {
+                        method: 'DELETE',
 
-                    method: 'DELETE',
-
-                    headers: {
-
-                        'Authorization':
-                            `Bearer ${token}`
-
+                        headers: {
+                            'Authorization':
+                                `Bearer ${token}`
+                        }
                     }
-
-                });
+                );
 
 
             const dados =
@@ -603,8 +695,12 @@ document.getElementById(
                     dados.error ||
                     'Erro ao limpar a tabela.'
                 );
-
             }
+
+
+            alert(
+                'Todos os produtos foram excluídos!'
+            );
 
 
             renderizarTabela();
@@ -613,12 +709,10 @@ document.getElementById(
         } catch (erro) {
 
             alert(erro.message);
-
         }
-
     }
-
 );
+
 
 // ==========================================
 // INICIALIZAÇÃO
