@@ -1,5 +1,10 @@
 const { createClient } = require('@supabase/supabase-js');
 
+const {
+    verificarToken,
+    verificarAdmin
+} = require('./authMiddleware');
+
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_PUBLISHABLE_KEY
@@ -7,9 +12,10 @@ const supabase = createClient(
 
 module.exports = async function handler(req, res) {
 
-    // =========================
-    // GET - BUSCAR PRODUTOS
-    // =========================
+    // ==========================================
+    // GET - LISTAR PRODUTOS
+    // Público: não precisa de login
+    // ==========================================
 
     if (req.method === 'GET') {
 
@@ -19,7 +25,6 @@ module.exports = async function handler(req, res) {
             .order('id', { ascending: true });
 
         if (error) {
-
             console.error(error);
 
             return res.status(500).json({
@@ -31,80 +36,125 @@ module.exports = async function handler(req, res) {
     }
 
 
-    // =========================
+    // ==========================================
     // POST - CADASTRAR PRODUTO
-    // =========================
+    // Precisa estar logado
+    // ==========================================
 
     if (req.method === 'POST') {
 
-        const { nome, preco, quantidade } = req.body;
+        const usuario = verificarToken(req, res);
 
-        const p = parseFloat(preco);
-        const q = parseInt(quantidade);
-
-        // Validação
-        if (
-            !nome ||
-            isNaN(p) ||
-            isNaN(q) ||
-            p <= 0 ||
-            q <= 0
-        ) {
-
-            return res.status(400).json({
-                error: 'Dados inválidos enviados para o servidor.'
-            });
+        if (!usuario) {
+            return;
         }
 
+        const { nome, preco, quantidade } = req.body;
+
+        if (!nome || preco === undefined || quantidade === undefined) {
+            return res.status(400).json({
+                error: 'Nome, preço e quantidade são obrigatórios.'
+            });
+        }
 
         const { data, error } = await supabase
             .from('produtos')
             .insert([
                 {
                     nome: nome,
-                    preco: p,
-                    quantidade: q
+                    preco: preco,
+                    quantidade: quantidade
                 }
             ])
-            .select()
+            .select('id, nome, preco, quantidade')
             .single();
 
-
         if (error) {
-
             console.error(error);
 
             return res.status(500).json({
-                error: 'Erro ao salvar produto.'
+                error: 'Erro ao cadastrar produto.'
             });
         }
-
 
         return res.status(201).json(data);
     }
 
 
-    // =========================
+    // ==========================================
+    // PUT - ALTERAR PRODUTO
+    // Precisa estar logado
+    // ==========================================
+
+    if (req.method === 'PUT') {
+
+        const usuario = verificarToken(req, res);
+
+        if (!usuario) {
+            return;
+        }
+
+        const id = req.query.id;
+
+        if (!id) {
+            return res.status(400).json({
+                error: 'ID do produto não informado.'
+            });
+        }
+
+        const { nome, preco, quantidade } = req.body;
+
+        const { data, error } = await supabase
+            .from('produtos')
+            .update({
+                nome: nome,
+                preco: preco,
+                quantidade: quantidade
+            })
+            .eq('id', id)
+            .select('id, nome, preco, quantidade')
+            .single();
+
+        if (error) {
+            console.error(error);
+
+            return res.status(500).json({
+                error: 'Erro ao atualizar produto.'
+            });
+        }
+
+        return res.status(200).json(data);
+    }
+
+
+    // ==========================================
     // DELETE - EXCLUIR PRODUTO
-    // =========================
+    // Somente ADMIN
+    // ==========================================
 
     if (req.method === 'DELETE') {
 
-        const nome = req.query.nome;
+        const usuario = verificarToken(req, res);
 
+        if (!usuario) {
+            return;
+        }
 
-        // Excluir um produto pelo nome
-        if (nome) {
+        if (!verificarAdmin(usuario, res)) {
+            return;
+        }
 
-            const { data, error } = await supabase
+        const id = req.query.id;
+
+        // DELETE /api/produtos?id=5
+        if (id) {
+
+            const { error } = await supabase
                 .from('produtos')
                 .delete()
-                .eq('nome', nome)
-                .select();
-
+                .eq('id', id);
 
             if (error) {
-
                 console.error(error);
 
                 return res.status(500).json({
@@ -112,45 +162,38 @@ module.exports = async function handler(req, res) {
                 });
             }
 
-
-            if (!data || data.length === 0) {
-
-                return res.status(404).json({
-                    error: 'Produto não encontrado.'
-                });
-            }
-
-
-            return res.status(204).send();
+            return res.status(200).json({
+                message: 'Produto excluído com sucesso.'
+            });
         }
 
 
-        // Excluir todos os produtos
+        // DELETE /api/produtos
+        // Excluir todos
         const { error } = await supabase
             .from('produtos')
             .delete()
             .not('id', 'is', null);
 
-
         if (error) {
-
             console.error(error);
 
             return res.status(500).json({
-                error: 'Erro ao limpar a tabela.'
+                error: 'Erro ao excluir produtos.'
             });
         }
 
-
-        return res.status(204).send();
+        return res.status(200).json({
+            message: 'Todos os produtos foram excluídos.'
+        });
     }
 
 
-    // =========================
+    // ==========================================
     // MÉTODO NÃO PERMITIDO
-    // =========================
+    // ==========================================
 
     return res.status(405).json({
         error: 'Método não permitido.'
     });
-};  
+};
